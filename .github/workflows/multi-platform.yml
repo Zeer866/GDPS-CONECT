@@ -1,0 +1,49 @@
+name: Build GDPS Connect
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'mod.json'
+      - 'CMakeLists.txt'
+      - '.github/workflows/**'
+
+jobs:
+  build:
+    name: Build ${{ matrix.platform.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        platform:
+          - name: Windows
+            os: windows-latest
+            target: Win64
+          - name: Android 64-bit
+            os: ubuntu-latest
+            target: Android64
+    runs-on: ${{ matrix.platform.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build Geode mod
+        uses: geode-sdk/build-geode-mod@main
+        with:
+          sdk: latest
+          target: ${{ matrix.platform.target }}
+          combine: true
+
+  package:
+    name: Package builds
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - name: Combine platform builds
+        id: build
+        uses: geode-sdk/build-geode-mod/combine@main
+      - name: Upload downloadable mod
+        uses: actions/upload-artifact@v4
+        with:
+          name: GDPS-Connect-builds
+          path: ${{ steps.build.outputs.build-output }}/*.geode
+          if-no-files-found: error
