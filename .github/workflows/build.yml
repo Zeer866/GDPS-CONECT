@@ -1,0 +1,24 @@
+name: Build GDPS Connect
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/**'
+      - 'mod.json'
+      - 'CMakeLists.txt'
+      - '.github/workflows/build.yml'
+
+jobs:
+  source-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check project files
+        run: |
+          test -f CMakeLists.txt
+          test -f mod.json
+          test -f src/main.cpp
+          python3 -m json.tool mod.json > /dev/null
+          echo "Project scaffold checks passed."
